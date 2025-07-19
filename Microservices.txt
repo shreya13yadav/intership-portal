@@ -1,0 +1,199 @@
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
+
+@SpringBootApplication
+@EnableEurekaServer
+public class EurekaServerApplication {
+	public static void main(String[]args) {
+		SpringApplication.run(EurekaServerApplication.class, args);
+	}
+
+}
+------------------------------------------
+package com.example.zidio;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class RestTemlateConfig {
+	
+	@Bean
+	public RestTemplate restTeplate() {
+		return new RestTemplate();
+	}
+	
+
+}
+---------------------------------------
+
+
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ApiGateWayApplication {
+	
+	public static void main(String[] ars) {
+		SpringApplication.run(ApiGateWayApplication.class, ars);
+	}
+
+}
+
+---------------------------------
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.config.server.EnableConfigServer;
+
+@SpringBootApplication
+@EnableConfigServer
+public class ConfigServerApplication {
+     public static void main(String[] args) {
+    	 SpringApplication.run(ConfigServerApplication.class, args);
+     }
+}
+------------------------------------------
+
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@EnableDiscoveryClient
+@SpringBootApplication
+public class AuthServiceApplication {
+	public static void main(String[]args) {
+		SpringApplication.run(AuthServiceApplication.class, args);
+	}
+
+}
+
+----------------------------------
+
+
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@EnableDiscoveryClient
+@SpringBootApplication
+public class StudentServiceApplication {
+	public static void main(String[]args) {
+		SpringApplication.run(StudentServiceApplication.class, args);
+	}
+
+}
+
+--------------------------------------
+
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@EnableDiscoveryClient
+@SpringBootApplication
+public class RecruiterServiceApplication {
+
+	public static void main(String[]args) {
+		SpringApplication.run(RecruiterServiceApplication.class, args);
+	}
+}
+
+-------------------------------------
+
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@EnableDiscoveryClient
+@SpringBootApplication
+public class JobPostServiceApplication {
+	
+public static void main(String[]args) {
+	SpringApplication.run(JobPostServiceApplication.class, args);
+}
+
+}
+
+--------------------------------
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@EnableDiscoveryClient
+@SpringBootApplication
+public class ApplicationServiceApplication {
+	
+	public static void main(String[]args) {
+		SpringApplication.run(ApplicationServiceApplication.class, args);
+	}
+
+}
+
+-------------------------------------------
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@EnableDiscoveryClient
+@SpringBootApplication
+public class AdminServiceApplication {
+	public static void main (String[]args) {
+		SpringApplication.run(AdminServiceApplication.class,args);
+	}
+
+}
+-------------------------------------
+
+
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@EnableDiscoveryClient
+@SpringBootApplication
+public class FileUploadServiceApplication {
+	
+	public static void main(String[]args) {
+		SpringApplication.run(FileUploadServiceApplication.class, args);
+	}
+
+}
+
+--------------------------------------
+
+package com.example.zidio;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@EnableDiscoveryClient
+@SpringBootApplication
+public class EmailServiceApplication {
+	public static void main(String[]args) {
+		SpringApplication.run(EmailServiceApplication.class, args);
+	}
+
+}
