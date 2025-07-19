@@ -1,0 +1,291 @@
+package com.example.entity;
+
+
+
+import java.util.Date;
+
+import javax.persistence.*;
+
+@Entity
+@Table(name="jobPosts")
+
+public class JobPost {
+
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	
+	private Long id;
+	
+	private String jobTitle;
+	private String jobDescription;
+	private String jobLocation;
+	private String jobType;
+	private String companyName;
+	private String postedByEmail;
+	private Date postedDate;
+	
+	
+	public JobPost() {}
+	public JobPost(Long id,String jobTitle,String jobDescription,String JobLocation,String jobType,String companyName,String postedByEmail,Date postedDSate) {
+		this.id=id;
+		this.jobTitle=jobTitle;
+		this.jobType=jobType;
+		this.jobDescription=jobDescription;
+		this.jobLocation=jobLocation;
+		this.companyName=companyName;
+		this.postedByEmail=postedByEmail;
+		this.postedDate=postedDate;
+	}
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public String getJobTitle() {
+		return jobTitle;
+	}
+	public void setJobTitle(String jobTitle) {
+		this.jobTitle = jobTitle;
+	}
+	public String getJobDescription() {
+		return jobDescription;
+	}
+	public void setJobDescription(String jobDescription) {
+		this.jobDescription = jobDescription;
+	}
+	public String getJobLocation() {
+		return jobLocation;
+	}
+	public void setJobLocation(String jobLocation) {
+		this.jobLocation = jobLocation;
+	}
+	public String getJobType() {
+		return jobType;
+	}
+	public void setJobType(String jobType) {
+		this.jobType = jobType;
+	}
+	public String getCompanyName() {
+		return companyName;
+	}
+	public void setCompanyName(String companyName) {
+		this.companyName = companyName;
+	}
+	public String getPostedByemail() {
+		return postedByEmail;
+	}
+	public void setPostedByemail(String postedByemail) {
+		this.postedByEmail = postedByemail;
+	}
+	public Date getPostedDate() {
+		return postedDate;
+	}
+	public void setPostedDate(Date postedDate) {
+		this.postedDate = postedDate;
+	}
+	
+	
+	
+}
+-------------------------------
+package com.example.DTO;
+
+import java.util.Date;
+
+public class JobPostDTO {
+	
+	public Long id;
+	public String jobTitle;
+	public String jobType;
+	public String jobLocation;
+	public String jobDescription;
+	public String companyName;
+	public String postedByEmail;
+	public Date postedDate;
+	
+	
+	public JobPostDTO() {}
+	public JobPostDTO(Long id,String jobTitle,String jobDescription,String JobLocation,String jobType,String companyName,String postedByEmail,Date postedDSate) {
+		this.id=id;
+		this.jobTitle=jobTitle;
+		this.jobType=jobType;
+		this.jobDescription=jobDescription;
+		this.jobLocation=jobLocation;
+		this.companyName=companyName;
+		this.postedByEmail=postedByEmail;
+		this.postedDate=postedDate;
+	}
+
+}
+-------------------------------
+package com.example.repositoty;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.entity.JobPost;
+
+@Repository
+public interface JobPostRepository extends JpaRepository<JobPost,Long>{
+	List<JobPost>findByPostedByEmail(String email);
+	List<JobPost>findByJobTitle(String jobTitle);
+	List<JobPost>findByJobType(String jobType);
+	List<JobPost>findByCompanyName(String companyName);
+
+}
+-----------------------------
+package com.example.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.DTO.JobPostDTO;
+import com.example.entity.JobPost;
+import com.example.repositoty.JobPostRepository;
+
+@Service
+
+public class JobPostService {
+
+	@Autowired
+	private JobPostRepository jobPostRepository;
+	
+	public JobPostDTO postJob(JobPostDTO dto) {
+		JobPost jobPost = new JobPost(
+				dto.id,
+				dto.jobTitle,
+				dto.jobType,dto.
+				jobDescription,dto.jobLocation,
+				dto.companyName,
+				dto.postedByEmail,
+				dto.postedDate);
+		
+		JobPost saved =jobPostRepository.save(jobPost);
+		return mapToDTO(saved);
+	}
+	
+	public List<JobPostDTO>getByPostedByEmail(String email){
+		return jobPostRepository.findByPostedByEmail(email).stream().map(this::mapToDTO).collect(Collectors.toList());
+	}
+	public List<JobPostDTO>getByJobTitle(String jobTitle){
+		return jobPostRepository.findByJobTitle(jobTitle).stream().map(this::mapToDTO).collect(Collectors.toList());
+	}
+	
+	public List<JobPostDTO>getByJobType(String jobType){
+		return jobPostRepository.findByJobType(jobType).stream().map(this::mapToDTO).collect(Collectors.toList());
+	}
+	public List<JobPostDTO>getByCompanyName(String companyName){
+		return jobPostRepository.findByCompanyName(companyName).stream().map(this::mapToDTO).collect(Collectors.toList());
+	}
+	
+	private JobPostDTO mapToDTO(JobPost jobPost) {
+		return new JobPostDTO(
+				jobPost.getId(),
+				jobPost.getJobTitle(),
+				jobPost.getJobType(),
+				jobPost.getJobDescription(),
+				jobPost.getJobLocation(),
+				jobPost.getCompanyName(),
+				jobPost.getPostedByemail(),
+				jobPost.getPostedDate()
+				);
+	}
+}
+-----------------------------
+package com.example.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.DTO.JobPostDTO;
+import com.example.service.JobPostService;
+
+@RestController
+@RequestMapping("/api/jobPosts")
+public class JobPostController {
+
+	@Autowired
+	private JobPostService jobPostService;
+	
+	
+	@PostMapping
+	public ResponseEntity<JobPostDTO>createJob(@RequestBody JobPostDTO dto){
+		return ResponseEntity.ok(jobPostService.postJob(dto));
+	}
+	@GetMapping("/recruiter")
+	public ResponseEntity<List<JobPostDTO>>getByPostedEmail(@RequestParam String email){
+		return ResponseEntity.ok(jobPostService.getByPostedByEmail(email));
+	}
+	@GetMapping("/jobTitle")
+	public ResponseEntity<List<JobPostDTO>>geyByJobTitle(@RequestParam String jobTitle){
+		return ResponseEntity.ok(jobPostService.getByJobTitle(jobTitle));
+	}
+	@GetMapping("/jobType")
+	public ResponseEntity<List<JobPostDTO>>geByJobType(@RequestParam String jobType){
+		return ResponseEntity.ok(jobPostService.getByJobType(jobType));
+	
+	}
+	@GetMapping("/companyName")
+	public ResponseEntity<List<JobPostDTO>>getByCompanyName(@RequestParam String companyName){
+		return ResponseEntity.ok(jobPostService.getByCompanyName(companyName));
+	}
+	
+}
+---------------------------------
+
+package com.example.security;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+
+@Configuration
+public class SecurityConfig {
+	
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+	
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+		
+		http.csrf().disable()
+		.authorizeRequests().
+		antMatchers("/api/auth/**","/api/students/**","/api/recruiters/**","/api/jobPosts/**").permitAll()
+		.anyRequest().authenticated()
+		.and()
+		.sessionManagement()
+		.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		
+		return http.build();
+		
+	}
+	
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+}
