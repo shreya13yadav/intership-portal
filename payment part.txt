@@ -1,0 +1,233 @@
+package com.example.entity;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import javax.persistence.*;
+
+import com.example.Enum.PaymentStatus;
+import com.example.Enum.PaymentType;
+
+@Entity
+@Table(name="payments")
+public class Payment {
+	
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+
+	private Long id;
+	private Long userId;
+	private Long planId;
+	
+	private String transactionId;
+	private BigDecimal amount;
+	private String currency;
+	
+	@Enumerated(EnumType.STRING)
+	private PaymentStatus paymentStatus;
+	
+     @Enumerated(EnumType.STRING)
+     private PaymentType paymentType;
+     private LocalDateTime paymentDate;
+     
+     
+     public Payment() {}
+     
+     public Payment(Long id,Long userId,Long planId,BigDecimal amount,String currency,PaymentStatus paymentStatus,String transactionId,PaymentType paymentType,LocalDateTime paymentDate) {
+    	 this.id=id;
+    	 this.userId=userId;
+    	 this.planId=planId;
+    	 this.amount=amount;
+    	 this.currency=currency;
+    	 this.paymentStatus=paymentStatus;
+    	 this.transactionId=transactionId;
+    	 this.paymentType=paymentType;
+    	 this.paymentDate=paymentDate;
+    	 }
+	public Long getPlanId() {
+		return planId;
+	}
+
+	public void setPlanId(Long planId) {
+		this.planId = planId;
+	}
+
+	public LocalDateTime getPaymentDate() {
+		return paymentDate;
+	}
+
+	public void setPaymentDate(LocalDateTime paymentDate) {
+		this.paymentDate = paymentDate;
+	}
+
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public Long getUserId() {
+		return userId;
+	}
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+	public BigDecimal getAmount() {
+		return amount;
+	}
+	public void setAmount(BigDecimal amount) {
+		this.amount = amount;
+	}
+	public String getCurrency() {
+		return currency;
+	}
+	public void setCurrency(String currency) {
+		this.currency = currency;
+	}
+	public PaymentStatus  getPaymentStatus() {
+		return paymentStatus;
+	}
+	public void setPaymentStatus(PaymentStatus paymentStatus) {
+		this.paymentStatus = paymentStatus;
+	}
+	public String getTransactionId() {
+		return transactionId;
+	}
+	public void setTransactionId(String transactionId) {
+		this.transactionId = transactionId;
+	}
+	public PaymentType getPaymentType() {
+		return paymentType;
+	}
+	public void setPaymentType(PaymentType paymentType) {
+		this.paymentType = paymentType;
+	}
+	
+     
+     
+     
+     
+}
+------------------------------
+package com.example.Enum;
+
+public enum PaymentStatus {
+  PAYMENTSUCCESSFUL,PAYMENTFAILED
+}
+
+
+package com.example.Enum;
+
+public enum PaymentType {
+	
+	CREDITCARD,DEBITCARD,UPI
+
+}
+-----------------------------
+
+package com.example.repositoty;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.example.entity.Payment;
+
+@Repository
+public interface PaymentRepository extends JpaRepository<Payment,Long>  {
+	
+	
+
+}
+-------------------------------------
+
+package com.example.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.example.DTO.PaymentDTO;
+import com.example.entity.Payment;
+import com.example.repositoty.PaymentRepository;
+
+@Service
+public class PaymentService {
+	
+	@Autowired 
+	private PaymentRepository paymentRepository;
+	
+	public PaymentDTO makePayment(PaymentDTO dto) {
+		Payment pay = new Payment();
+		pay.setId(dto.id);
+		pay.setUserId(dto.userId);
+		pay.setPlanId(dto.planId);
+		pay.setAmount(dto.amount);
+		pay.setCurrency(dto.currency);;
+		pay.setPaymentType(dto.paymentType);
+		pay.setPaymentStatus(dto.paymentStatus);
+		pay.setPaymentDate(dto.paymentDate);
+		pay.setTransactionId(dto.transactionId);
+		
+		
+		Payment saved= paymentRepository.save(pay);
+		dto.id=saved.getId();
+		dto.paymentDate=saved.getPaymentDate();
+		dto.paymentStatus=saved.getPaymentStatus();
+		return dto;
+	}
+	
+	public List<PaymentDTO> getAllPayments(){
+		return paymentRepository.findAll().stream().map(p ->{
+			PaymentDTO dto= new PaymentDTO();
+				dto.id=p.getId();
+				dto.planId=p.getPlanId();
+				dto.userId=p.getUserId();
+				dto.amount=p.getAmount();
+				dto.currency=p.getCurrency();
+				dto.paymentType=p.getPaymentType();
+				dto.paymentStatus=p.getPaymentStatus();
+				dto.paymentDate=p.getPaymentDate();
+				return dto;})
+				.collect(Collectors.toList());
+	
+			
+			
+		
+	}
+
+}
+-------------------------------------
+package com.example.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.DTO.PaymentDTO;
+import com.example.service.PaymentService;
+
+@RestController
+@RequestMapping("/ap/payments")
+public class PaymentController {
+	
+	@Autowired
+	private PaymentService paymentService;
+	
+	
+	@PostMapping
+	public ResponseEntity<PaymentDTO> pay(@RequestBody PaymentDTO dto ){
+		return ResponseEntity.ok(paymentService.makePayment(dto));
+	}
+	@GetMapping
+	public ResponseEntity<List<PaymentDTO>>getAll(){
+		return ResponseEntity.ok(paymentService.getAllPayments());
+	}
+
+}
