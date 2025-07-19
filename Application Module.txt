@@ -1,0 +1,265 @@
+package com.example.entity;
+
+import java.util.Date;
+
+import javax.persistence.*;
+
+import com.example.Enum.Status;
+
+@Entity
+@Table(name="applications")
+public class Application {
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	
+	private Long id;
+	
+	private Long studentId;
+	private Long jobId;
+	private String resumeURL;
+	private Status status;
+	private Date appliedDate;
+
+	
+	
+	public Application() {}
+	public Application(Long id,Long studentId,Long jobId,String resumeURL,Status status,Date appliedDate) {
+		this.id=id;
+		this.studentId=studentId;
+		this.jobId=jobId;
+		this.resumeURL=resumeURL;
+		this.status= status;
+		this.appliedDate=appliedDate;
+	}
+	
+	public String getResumeURL() {
+		return resumeURL;
+	}
+	public void setResumeURL(String resumeURL) {
+		this.resumeURL = resumeURL;
+	}
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public Long getStudentId() {
+		return studentId;
+	}
+
+	public void setStudentId(Long studentId) {
+		this.studentId = studentId;
+	}
+
+	public Long getJobId() {
+		return jobId;
+	}
+
+	public void setJobId(Long jobId) {
+		this.jobId = jobId;
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
+	public Date getAppliedDate() {
+		return appliedDate;
+	}
+
+	public void setAppliedDate(Date appliedDate) {
+		this.appliedDate = appliedDate;
+	}
+	
+	
+	
+
+}
+----------------------------------------------
+package com.example.DTO;
+
+import java.util.Date;
+
+import com.example.Enum.Status;
+
+public class ApplicationDTO {
+	
+	
+    public Long id;
+	
+	public  Long studentId;
+	public Long jobId;
+	public String resumeURL;
+	public Status status;
+	
+	public Date appliedDate;
+
+	
+	public ApplicationDTO(Long id,Long studentId,Long jobId,String resumeURL,Status status,Date appliedDate) {
+		this.id=id;
+		this.studentId=studentId;
+		this.jobId=jobId;
+		this.resumeURL=resumeURL;
+		this.status= status;
+		this.appliedDate=appliedDate;
+	}
+
+}
+--------------------------------package com.example.Enum;
+
+public enum Status {
+	
+	APPLIED,SHORTLIST,REJECTED,SELECTED
+
+}
+-----------------------------------------
+package com.example.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.DTO.ApplicationDTO;
+import com.example.Enum.Status;
+import com.example.entity.Application;
+import com.example.repositoty.ApplicationRepository;
+
+@Service
+public class ApplicationService {
+	
+	@Autowired
+	private ApplicationRepository applicationRepository;
+	
+	public ApplicationDTO apply(ApplicationDTO dto) {
+		Application app= new Application();
+		app.setId(dto.id);
+		app.setStudentId(dto.studentId);
+		app.setJobId(dto.jobId);
+		app.setResumeURL(dto.resumeURL);
+		app.setStatus(dto.status);
+		app.setAppliedDate(dto.appliedDate);
+		
+		Application saved = applicationRepository.save(app);
+		
+		return new ApplicationDTO(saved.getId(),saved.getStudentId(),saved.getJobId(),saved.getResumeURL(),saved.getStatus(),saved.getAppliedDate());
+	}
+
+	public List<ApplicationDTO>getApplicationByStudentId(Long studentId){
+		return applicationRepository.findByStudentId(studentId)
+				.stream().map(app-> new ApplicationDTO(app.getId(),app.getStudentId(),app.getJobId(),app.getResumeURL(),app.getStatus(),app.getAppliedDate()))
+		        .collect(Collectors.toList());
+	}
+	public List<ApplicationDTO>getApplicationByJobId(Long jobId){
+		return applicationRepository.findByJobId(jobId)
+		.stream().map(app-> new ApplicationDTO(app.getId(),app.getStudentId(),app.getJobId(),app.getResumeURL(),app.getStatus(),app.getAppliedDate()))
+        .collect(Collectors.toList());
+	}
+	
+	public void updateStatus(Long id ,Status status) {
+		Application app = applicationRepository.findById(id).orElseThrow(()-> new RuntimeException("pplication not found"));
+		app.setStatus(status);
+		applicationRepository.save(app);
+		
+	}
+}
+------------------------------------------
+
+package com.example.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.DTO.ApplicationDTO;
+import com.example.Enum.Status;
+import com.example.service.ApplicationService;
+
+@RestController
+@RequestMapping("/api/applications")
+public class ApplicationController {
+	
+	@Autowired
+	private ApplicationService applicaionService;
+	
+	
+	@PostMapping("/apply")
+	public ResponseEntity <ApplicationDTO>apply(@RequestBody ApplicationDTO dto){
+		return ResponseEntity.ok(applicaionService.apply(dto));
+	}
+	
+	@GetMapping("/student/{studentId}")
+	public ResponseEntity<List<ApplicationDTO>>getApplicationByStudentId(@PathVariable Long studentId){
+		return ResponseEntity.ok(applicaionService.getApplicationByStudentId(studentId));
+	}
+	@GetMapping("/job/{jobId}")
+	public ResponseEntity<List<ApplicationDTO>>getApplicationByJoId(@PathVariable Long jobId){
+		return ResponseEntity.ok(applicaionService.getApplicationByJobId(jobId));
+	}
+	@PostMapping("/{id}/status")
+	public void updateStatus(@PathVariable Long id,@RequestParam Status status) {
+		applicaionService.updateStatus(id, status);
+	}
+
+}
+-------------------------------------
+
+package com.example.security;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+
+@Configuration
+public class SecurityConfig {
+	
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+	
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+		
+		http.csrf().disable()
+		.authorizeRequests().
+		antMatchers("/api/auth/**","/api/students/**","/api/recruiters/**","/api/jobPosts/**","/api.applications/**").permitAll()
+		.anyRequest().authenticated()
+		.and()
+		.sessionManagement()
+		.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		
+		return http.build();
+		
+	}
+	
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+}
