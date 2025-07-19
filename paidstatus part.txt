@@ -1,0 +1,200 @@
+package com.example.entity;
+
+import java.time.LocalDate;
+
+import javax.persistence.*;
+
+import com.example.Enum.PaidStatus;
+
+@Entity
+@Table(name="user_payment_status")
+
+public class UserPaymentStatus {
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private Long id;
+	private Long planId;
+	private Long userId;
+	private LocalDate subscriptionStart;
+	private LocalDate subscriptionEnd;
+	private PaidStatus status;
+
+	public UserPaymentStatus(){} 
+	public UserPaymentStatus(Long id,Long planId,Long userId,LocalDate subscriptionStart,LocalDate subscriptionEnd,PaidStatus status) {
+		this.id=id;
+		this.planId=planId;
+		this.userId=userId;
+		this.subscriptionStart=subscriptionStart;
+		this.subscriptionEnd=subscriptionEnd;
+		this.status=status;
+		
+	}
+	
+
+
+	public PaidStatus getStatus() {
+		return status;
+	}
+	public void setStatus(PaidStatus status) {
+		this.status = status;
+	}
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public Long getPlanId() {
+		return planId;
+	}
+	public void setPlanId(Long planId) {
+		this.planId = planId;
+	}
+	public Long getUserId() {
+		return userId;
+	}
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+	public LocalDate getSubscriptionStart() {
+		return subscriptionStart;
+	}
+	public void setSubscriptionStart(LocalDate subscriptionStart) {
+		this.subscriptionStart = subscriptionStart;
+	}
+	public LocalDate getSubscriptionEnd() {
+		return subscriptionEnd;
+	}
+	public void setSubscriptionEnd(LocalDate subscriptionEnd) {
+		this.subscriptionEnd = subscriptionEnd;
+	}
+	
+	
+	
+
+}
+----------------------------------
+package com.example.Enum;
+
+public enum PaidStatus {
+ACTIVE,EXPIRED,CNCELLED
+}
+---------------------------------
+package com.example.DTO;
+
+import java.time.LocalDate;
+
+import com.example.Enum.PaidStatus;
+public class UserPaymentStatusDTO {
+	
+	public Long id;
+	public Long planId;
+	public Long userId;
+	public LocalDate subscriptionStart;
+	public LocalDate subscriptionEnd;
+	public PaidStatus status;
+	
+
+	public UserPaymentStatusDTO() {}
+	public UserPaymentStatusDTO(Long id,Long planId,Long userId,LocalDate subscriptionStart,LocalDate subscriptionEnd,PaidStatus status) {
+		this.id=id;
+		this.planId=planId;
+		this.userId=userId;
+		this.subscriptionStart=subscriptionStart;
+		this.subscriptionEnd=subscriptionEnd;
+		this.status=status;
+		
+	}
+
+}
+----------------------------------------
+
+package com.example.service;
+
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.DTO.UserPaymentStatusDTO;
+import com.example.entity.UserPaymentStatus;
+import com.example.repositoty.UserPaymentStatusRepository;
+
+@Service
+public class UserPaymentStatusService {
+	
+	@Autowired
+	private UserPaymentStatusRepository userPaymentStatusRepository;
+	
+	public UserPaymentStatusDTO assignSubscriptionPlan(UserPaymentStatusDTO dto) {
+		UserPaymentStatus paymentStatus  = new UserPaymentStatus();
+		paymentStatus.setUserId(dto.id);
+		paymentStatus.setPlanId(dto.planId);
+		paymentStatus.setSubscriptionStart(dto.subscriptionStart);
+		paymentStatus.setSubscriptionEnd(dto.subscriptionEnd);
+		paymentStatus.setStatus(dto.status);
+		
+//		userPaymentStatusRepository.save(paymentStatus);
+		
+		UserPaymentStatus saved = userPaymentStatusRepository.save(paymentStatus);
+		dto.id=saved.getId();
+		dto.subscriptionStart=saved.getSubscriptionStart();
+		dto.subscriptionEnd=saved.getSubscriptionEnd();
+		dto.status=saved.getStatus();
+		return dto;
+	}
+	
+	public Optional<UserPaymentStatusDTO> getStatusByUserId(Long id){
+		return userPaymentStatusRepository.findByUserId(id).map(status->{
+			UserPaymentStatusDTO dto = new UserPaymentStatusDTO();
+			dto.id=status.getId();
+			dto.planId=status.getPlanId();
+			dto.userId=status.getUserId();
+			dto.subscriptionStart=status.getSubscriptionStart();
+			dto.subscriptionEnd=status.getSubscriptionEnd();
+			dto.status=status.getStatus();
+			return dto;
+			
+		});
+	}
+	
+	
+
+}
+--------------------------------------
+
+package com.example.controller;
+
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.DTO.UserPaymentStatusDTO;
+import com.example.service.UserPaymentStatusService;
+
+@RestController
+@RequestMapping("/api/user_subscrptions_tatus")
+public class UserPaymentStatusController {
+	
+	@Autowired
+	private UserPaymentStatusService userPaymentStatusService;
+	
+	
+	@PostMapping
+	public ResponseEntity<UserPaymentStatusDTO>assign(@RequestBody UserPaymentStatusDTO dto ){
+		return ResponseEntity.ok(userPaymentStatusService.assignSubscriptionPlan(dto));
+	}
+
+	@GetMapping("{userId}")
+	public ResponseEntity<Optional<UserPaymentStatusDTO>> getStatus(@PathVariable Long userId){
+		return ResponseEntity.ok(userPaymentStatusService.getStatusByUserId(userId));
+	}
+}
